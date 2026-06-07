@@ -1,59 +1,67 @@
 package com.lean.trebol.domain.model;
 
 import com.lean.trebol.domain.model.enums.Rol;
+import com.lean.trebol.domain.valueobject.Email;
 
 import java.time.LocalDateTime;
+import java.util.Objects;
 import java.util.UUID;
 
 public class Usuario {
 
-    private UUID id;
+    private final UUID id;
+    private final Email email;
+    private final String passwordHash;
+    private final Rol rol;
+    private final LocalDateTime createdAt;
 
-    private String email;
-
-    private String passwordHash;
-
-    private Rol rol;
-
-    private LocalDateTime creado_desde;
-
-    public Usuario() {
+    private Usuario(UUID id, Email email, String passwordHash, Rol rol, LocalDateTime createdAt) {
+        this.id = Objects.requireNonNull(id);
+        this.email = Objects.requireNonNull(email);
+        this.passwordHash = Objects.requireNonNull(passwordHash);
+        this.rol = Objects.requireNonNull(rol);
+        this.createdAt = Objects.requireNonNull(createdAt);
     }
 
-    public Usuario(String email, String passwordHash, Rol rol) {
-        if (email == null || email.isBlank()){
-            throw new IllegalArgumentException("El email no puede estar vacío");
-        }
-        if (passwordHash == null || passwordHash.isBlank()){
-            throw new IllegalArgumentException("La contraseña no puede estar vacía");
-        }
-        if (rol == null){
-            throw new IllegalArgumentException("El rol es obligatorio");
-        }
-        this.id = UUID.randomUUID();
-        this.email = email;
-        this.passwordHash = passwordHash;
-        this.rol = rol;
-        this.creado_desde = LocalDateTime.now();
+    public static Usuario crear(String email, String passwordHash) {
+        return new Usuario(
+                UUID.randomUUID(),
+                new Email(email),          // El VO valida el formato
+                Objects.requireNonNull(passwordHash, "El passwordHash no puede ser null"),
+                Rol.USER,            // Todo usuario nuevo es USER por defecto
+                LocalDateTime.now()
+        );
     }
 
-    public UUID getId() {
-        return id;
+    public static Usuario reconstituir(UUID id, String email, String passwordHash, Rol rol, LocalDateTime createdAt) {
+        return new Usuario(id, new Email(email), passwordHash, rol, createdAt);
     }
 
-    public String getEmail() {
-        return email;
+    public boolean esAdmin() {
+        return this.rol == Rol.ADMIN;
     }
 
-    public String getPasswordHash() {
-        return passwordHash;
+
+    public UUID getId() { return id; }
+    public Email getEmail() { return email; }
+    public String getPasswordHash() { return passwordHash; }
+    public Rol getRol() { return rol; }
+    public LocalDateTime getCreatedAt() { return createdAt; }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (!(o instanceof Usuario)) return false;
+        return id.equals(((Usuario) o).id);
     }
 
-    public Rol getRol() {
-        return rol;
+    @Override
+    public int hashCode() {
+        return Objects.hash(id);
     }
 
-    public LocalDateTime getCreado_desde() {
-        return creado_desde;
+    @Override
+    public String toString() {
+        return "Usuario{id=" + id + ", email=" + email + ", rol=" + rol + "}";
     }
 }

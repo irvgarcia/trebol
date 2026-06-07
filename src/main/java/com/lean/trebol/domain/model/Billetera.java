@@ -1,49 +1,108 @@
 package com.lean.trebol.domain.model;
 
-import java.math.BigDecimal;
+import com.lean.trebol.domain.exception.SaldoInsuficienteException;
+import com.lean.trebol.domain.valueobject.Dinero;
+
 import java.util.UUID;
+import java.util.Objects;
 
 public class Billetera {
 
-    private UUID id;
+    private final UUID id;
+    private final UUID usuarioId;
+    private Dinero saldoDisponible;
+    private Dinero saldoRetenido;
 
-    private UUID usuario_id;
-
-    private BigDecimal saldo_disponible;
-
-    private BigDecimal saldo_retenido;
-
-    public Billetera() {
+    private Billetera(UUID id, UUID usuarioId,
+                      Dinero saldoDisponible, Dinero saldoRetenido) {
+        this.id = Objects.requireNonNull(id);
+        this.usuarioId = Objects.requireNonNull(usuarioId);
+        this.saldoDisponible = Objects.requireNonNull(saldoDisponible);
+        this.saldoRetenido = Objects.requireNonNull(saldoRetenido);
     }
 
-//    public Billetera(UUID usuario_id) {
-//        this(usuario_id, BigDecimal.ZERO, BigDecimal.ZERO);
-//    }
-
-    public Billetera(UUID usuario_id, BigDecimal saldo_disponible, BigDecimal saldo_retenido) {
-        if (usuario_id == null) throw new IllegalArgumentException("El ID de usuario es obligatorio");
-        if (saldo_disponible == null || saldo_disponible.compareTo(BigDecimal.ZERO) < 0) throw new IllegalArgumentException("El saldo disponible no puede ser negativo");
-        if (saldo_retenido == null || saldo_retenido.compareTo(BigDecimal.ZERO) < 0) throw new IllegalArgumentException("El saldo retenido no puede ser negativo");
-
-        this.id = UUID.randomUUID();
-        this.usuario_id = usuario_id;
-        this.saldo_disponible = saldo_disponible;
-        this.saldo_retenido = saldo_retenido;
+    public static Billetera crear(UUID usuarioId) {
+        return new Billetera(UUID.randomUUID(), usuarioId, Dinero.CERO, Dinero.CERO);
     }
 
-    public UUID getId() {
-        return id;
+    public static Billetera reconstituir(UUID id, UUID usuarioId, Dinero saldoDisponible, Dinero saldoRetenido) {
+        return new Billetera(id, usuarioId, saldoDisponible, saldoRetenido);
     }
 
-    public UUID getUsuario_id() {
-        return usuario_id;
+    public void depositar(Dinero monto) {
+        validarMontoPositivo(monto, "depositar");
+        this.saldoDisponible = saldoDisponible.sumar(monto);
     }
 
-    public BigDecimal getSaldo_disponible() {
-        return saldo_disponible;
+    public void retirar(Dinero monto) {
+        validarMontoPositivo(monto, "retirar");
+        if (!saldoDisponible.esMayorOIgualQue(monto)) {
+            throw new SaldoInsuficienteException(
+                    "Saldo disponible insuficiente para retirar. " +
+                            "Disponible: " + saldoDisponible + ", solicitado: " + monto
+            );
+        }
+        this.saldoDisponible = saldoDisponible.restar(monto);
     }
 
-    public BigDecimal getSaldo_retenido() {
-        return saldo_retenido;
+    public void retener(Dinero monto) {
+        validarMontoPositivo(monto, "retener");
+        if (!saldoDisponible.esMayorOIgualQue(monto)) {
+            throw new SaldoInsuficienteException(
+                    "Saldo disponible insuficiente para apostar. " +
+                            "Disponible: " + saldoDisponible + ", apuesta: " + monto
+            );
+        }
+        this.saldoDisponible = saldoDisponible.restar(monto);
+        this.saldoRetenido = saldoRetenido.sumar(monto);
+    }
+
+    public void liberar(Dinero monto) {
+        validarMontoPositivo(monto, "liberar");
+        this.saldoRetenido = saldoRetenido.restar(monto);
+        this.saldoDisponible = saldoDisponible.sumar(monto);
+    }
+
+    public void acreditarGanancia(Dinero montoApostado, Dinero gananciaNeta) {
+        // Primero liberar lo retenido
+        this.saldoRetenido = saldoRetenido.restar(montoApostado);
+        // Luego acreditar: monto original + ganancia neta
+        this.saldoDisponible = saldoDisponible.sumar(montoApostado).sumar(gananciaNeta);
+    }
+
+    public Dinero saldoTotal() {
+        return saldoDisponible.sumar(saldoRetenido);
+    }
+
+    private void validarMontoPositivo(Dinero monto, String operacion) {
+        if (monto.esCero()) {
+            throw new IllegalArgumentException(
+                    "El monto para '" + operacion + "' debe ser mayor que cero"
+            );
+        }
+    }
+
+    // ── Getters ────────────────────────────────────────────────────────────────
+
+    public UUID getId() { return id; }
+    public UUID getUsuarioId() { return usuarioId; }
+    public Dinero getSaldoDisponible() { return saldoDisponible; }
+    public Dinero getSaldoRetenido() { return saldoRetenido; }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (!(o instanceof Billetera)) return false;
+        return id.equals(((Billetera) o).id);
+    }
+
+    @Override
+    public int hashCode() { return Objects.hash(id); }
+
+    @Override
+    public String toString() {
+        return "Billetera{id=" + id +
+                ", disponible=" + saldoDisponible +
+                ", retenido=" + saldoRetenido + "}";
     }
 }
