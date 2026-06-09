@@ -1,4 +1,4 @@
-package com.lean.trebol.domain.port.in;
+package com.lean.trebol.domain.port.in.transaccion;
 
 import com.lean.trebol.domain.model.Transaccion;
 import java.util.List;

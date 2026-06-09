@@ -1,4 +1,4 @@
-package com.lean.trebol.domain.port.in;
+package com.lean.trebol.domain.port.in.mercado;
 
 import java.util.UUID;
 

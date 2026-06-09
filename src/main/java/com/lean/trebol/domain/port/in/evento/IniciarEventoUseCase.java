@@ -1,4 +1,4 @@
-package com.lean.trebol.domain.port.in;
+package com.lean.trebol.domain.port.in.evento;
 
 import java.util.UUID;
 

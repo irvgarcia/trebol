@@ -1,4 +1,4 @@
-package com.lean.trebol.domain.port.in;
+package com.lean.trebol.domain.port.in.cuota;
 
 import com.lean.trebol.domain.model.Cuota;
 import java.math.BigDecimal;

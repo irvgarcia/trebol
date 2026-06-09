@@ -1,4 +1,4 @@
-package com.lean.trebol.domain.port.in;
+package com.lean.trebol.domain.port.in.billetera;
 
 import com.lean.trebol.domain.model.Billetera;
 import java.util.UUID;

@@ -1,4 +1,4 @@
-package com.lean.trebol.domain.port.in;
+package com.lean.trebol.domain.port.in.evento;
 
 import com.lean.trebol.domain.model.Evento;
 import java.time.LocalDateTime;

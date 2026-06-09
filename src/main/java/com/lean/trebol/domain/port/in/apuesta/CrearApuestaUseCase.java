@@ -1,4 +1,4 @@
-package com.lean.trebol.domain.port.in;
+package com.lean.trebol.domain.port.in.apuesta;
 
 import com.lean.trebol.domain.model.Apuesta;
 import com.lean.trebol.domain.valueobject.Dinero;
